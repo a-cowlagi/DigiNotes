@@ -15,7 +15,7 @@ class PerspectiveCorrection:
         if (src_img is None):
             src_img = self.src_img
         anchor_pts = get_anchor_points(src_img) # In clockwise order -- TL, TR, BR, BL
-        anchor_pts, transformed_pts, newH, newW = retain_aspect_ratio(src_img, anchor_pts)
+        anchor_pts, transformed_pts, newH, newW = retain_aspect_ratio(src_img, anchor_pts, characteristic_length)
         corrected_img = correct_perspective(src_img, anchor_pts, transformed_pts, newH, newW)
         self.corrected_img = corrected_img
 
@@ -28,11 +28,10 @@ class PerspectiveCorrection:
         if not isfolder:
             os.makedirs(tgt_image_path)
         
-        if (corrected_img.shape[2] != 3):
+        if (len(corrected_img.shape) != 3):
             corrected_img = cv2.cvtColor(corrected_img, cv2.COLOR_GRAY2BGR)
         
         output_fp = os.path.join(tgt_image_path, f"{output_filename}_corrected.jpg")
-        
         
         cv2.imwrite(output_fp, corrected_img)
 
@@ -179,7 +178,7 @@ def compute_homography(p1, p2):
     return H
 
 def correct_perspective(img, source_pts, target_pts, height, width):
-    if (img.shape[2] == 3):
+    if (len(img.shape) == 3 and img.shape[2] == 3):
         canvas = np.zeros((height, width, 3))
     else:
         canvas = np.zeros((height, width))
@@ -194,7 +193,7 @@ def correct_perspective(img, source_pts, target_pts, height, width):
     p1_warped_coords = p1_warped_coords[:2]
     p1_warped_coords = (p1_warped_coords).astype(int)
     
-    if (img.shape[2] == 3):
+    if (len(img.shape) == 3 and img.shape[2] == 3):
         canvas += np.reshape(img[p1_warped_coords[1], p1_warped_coords[0]], (height, width, 3))
     else:
         canvas += np.reshape(img[p1_warped_coords[1], p1_warped_coords[0]], (height, width))
