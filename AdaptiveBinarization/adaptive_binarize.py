@@ -5,6 +5,7 @@ import skimage.color
 import skimage.filters._gaussian as gaussian
 from skimage.filters import thresholding
 from typing import Optional
+from .enhance_utils import enhance
 
 class AdaptiveBinarization:
     def __init__(self, src_img: np.ndarray, scale: str = "255"):
@@ -13,33 +14,34 @@ class AdaptiveBinarization:
         self.binarized_img = None
         self.scale = scale
     
-    def process(self, image: Optional[np.ndarray] = None, threshold_method = "Sauvola", blur = True, sigma = 1.0, **kwargs):
+    def process(self, image: Optional[np.ndarray] = None, enhance_first = True, threshold_method = "Sauvola", **kwargs):
         if (image is None):
             image = self.src_img
         
+        if (enhance_first):
+            image = enhance(image)
+
         if (len(image.shape) == 3 and image.shape[2] == 3):
             image = skimage.color.rgb2gray(image)
-        
-        if (blur):
-            image = gaussian.gaussian(image, sigma=sigma)
 
-        binarized = None
-        if (threshold_method == "Sauvola"):
-            threshold = thresholding.threshold_sauvola(image, **kwargs)
-        elif (threshold_method == "Niblack"):
-            threshold = thresholding.threshold_niblack(image, **kwargs)
-        elif (threshold_method == "Otsu"):
-            threshold = thresholding.threshold_otsu(image, **kwargs)
-        elif (threshold_method == "Yen"):
-            threshold = thresholding.threshold_yen(image, **kwargs)
-        else:
-            raise NotImplementedError("Thresholding methods supported are Sauvola, Niblack, Otsu, and Yen")
+        self.binarized_img = image
+        if (threshold_method is not None):
+            if (threshold_method == "Sauvola"):
+                threshold = thresholding.threshold_sauvola(image, **kwargs)
+            elif (threshold_method == "Niblack"):
+                threshold = thresholding.threshold_niblack(image, **kwargs)
+            elif (threshold_method == "Otsu"):
+                threshold = thresholding.threshold_otsu(image, **kwargs)
+            elif (threshold_method == "Yen"):
+                threshold = thresholding.threshold_yen(image, **kwargs)
+            else:
+                raise NotImplementedError("Thresholding methods supported are Sauvola, Niblack, Otsu, and Yen")
 
-        binarized = image > threshold
-        
-        if (self.scale == "255"):
-            self.binarized_img = binarized.astype(int) * 255
+            binarized = image > threshold
             
+            if (self.scale == "255"):
+                self.binarized_img = binarized.astype(int) * 255
+                
     
     def save_output(self, output_filename, tgt_image_path):
         if (self.binarized_img is None):

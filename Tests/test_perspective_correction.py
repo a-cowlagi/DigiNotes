@@ -10,7 +10,7 @@ from scipy.spatial import ConvexHull, distance
 from PerspectiveCorrection.perspective_correction import PerspectiveCorrection
 
 # Relative to repository root
-src_image_path = "Tests/TestImages/perspective_correction_test.jpg"
+src_image_path = "Tests/TestImages/test.jpg"
 tgt_image_path = "Tests/Outputs/PerspectiveCorrectionOutput"
 
 characteristic_length = 1000

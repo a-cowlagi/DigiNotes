@@ -4,36 +4,42 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 from PIL import Image
+from skimage import color
+from skimage import io
 from scipy.spatial import ConvexHull, distance
 
 class PerspectiveCorrection:
-    def __init__(self, src_img):
+    def __init__(self, src_img):        
         self.src_img = src_img
         self.corrected_img = None
 
     def process(self, src_img = None, characteristic_length = 1000):
         if (src_img is None):
             src_img = self.src_img
-        anchor_pts = get_anchor_points(src_img) # In clockwise order -- TL, TR, BR, BL
+
+        
+        anchor_pts = get_anchor_points(np.copy(src_img)) # In clockwise order -- TL, TR, BR, BL
         anchor_pts, transformed_pts, newH, newW = retain_aspect_ratio(src_img, anchor_pts, characteristic_length)
         corrected_img = correct_perspective(src_img, anchor_pts, transformed_pts, newH, newW)
-        self.corrected_img = corrected_img
+        self.corrected_img = corrected_img.astype(np.uint8)
+
+        
 
     def save_output(self, output_filename, tgt_image_path):
         if (self.corrected_img is None):
             raise AttributeError("No non-null attribute 'corrected_img', call process() first?")
 
-        corrected_img = self.corrected_img 
+        corrected_img = self.corrected_img
         isfolder = os.path.exists(tgt_image_path)
         if not isfolder:
             os.makedirs(tgt_image_path)
         
         if (len(corrected_img.shape) != 3):
-            corrected_img = cv2.cvtColor(corrected_img, cv2.COLOR_GRAY2BGR)
+            corrected_img = color.gray2rgb(corrected_img).astype(np.uint8)
         
         output_fp = os.path.join(tgt_image_path, f"{output_filename}_corrected.jpg")
         
-        cv2.imwrite(output_fp, corrected_img)
+        io.imsave(output_fp, corrected_img)
 
 def tellme(s, verbose = False):
     if (verbose):
@@ -80,7 +86,8 @@ def retain_aspect_ratio(img, p, characteristic_length = 1000):
     # Expects in zig-zag TL, TR, BL, BR
     p[[2,3]] = p[[3, 2]]
     
-    (rows,cols,_) = img.shape
+    
+    rows,cols = img.shape[0], img.shape[1]
     #image center
     u0 = (cols)/2.0
     v0 = (rows)/2.0
@@ -197,6 +204,7 @@ def correct_perspective(img, source_pts, target_pts, height, width):
         canvas += np.reshape(img[p1_warped_coords[1], p1_warped_coords[0]], (height, width, 3))
     else:
         canvas += np.reshape(img[p1_warped_coords[1], p1_warped_coords[0]], (height, width))
+
 
     return canvas
 
