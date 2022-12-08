@@ -6,8 +6,8 @@ import argparse
 from LineSegments.line_segmentation import LineSegmentation
 
 # Relative to repository root
-src_image_path = "Tests/TestImages/line_segmentation_test.jpg"
-tgt_images_path = "Tests/Outputs/LineSegmentationOutput"
+src_image_path = "Tests/TestImages/demo_day_ocr.jpg"
+tgt_images_path = "Tests/Outputs/LineSegmentationOutput/DemoDay"
 
 def generate_lines(src_path, tgt_path):
     image = plt.imread(src_path)

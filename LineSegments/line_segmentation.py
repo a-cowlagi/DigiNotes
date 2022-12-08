@@ -13,7 +13,7 @@ class LineSegmentation:
         
         self.out_images: List = None
    
-    def process(self, image: Optional[np.ndarray] = None, th = 2, min_lw = 5):
+    def process(self, image: Optional[np.ndarray] = None, th = 2, min_lw = 10):
         if (image is None):
             image = self.src_image
         # Ensure gray scale

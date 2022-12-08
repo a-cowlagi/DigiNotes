@@ -3,7 +3,7 @@ import numpy as np
 import skimage.io
 import io
 from PIL import ImageOps, Image, ImageChops
-from scipy.ndimage import morphology, label
+from scipy.ndimage import morphology, label 
 import os
 from mathpix.mathpix import MathPix
 from sympy import preview
@@ -89,13 +89,11 @@ class EquationDetection:
         # Iterate over the boxes and crop the image.
         for i, box in enumerate(boxes):
             # Extract the coordinates of the box.
-            xmin, ymin, xmax, ymax = box[0][0][0], box[0][0][1], box[0][2][0], box[0][2][1]
-            
+            xmin, ymin, xmax, ymax = box[0][0][0], box[0][0][1], box[0][2][0], box[0][2][1]            
             eqn_img = image[ymin:ymax, xmin:xmax]
             
             ocr = self._eqn_img_to_latex(eqn_img)
             try: 
-                print(ocr.latex)
                 digitized_equation = self.tex_to_image(ocr.latex)
             except ValueError as e:
                 digitized_equation = None       
@@ -181,6 +179,8 @@ class EquationDetection:
             
             skimage.io.imsave(output_digitized_fp, equation['digitized_image'])
             skimage.io.imsave(output_orig_fp, equation['orig_image'])
+
+        
             
             
             
