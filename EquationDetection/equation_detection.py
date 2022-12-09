@@ -171,23 +171,12 @@ class EquationDetection:
             os.makedirs(output_dir)
         
         for i, equation in enumerate(self.equations):
+            print(equation["latex"])
             output_orig_fp = os.path.join(output_dir, f"equation_orig_{i}.jpg")
             output_digitized_fp = os.path.join(output_dir, f"equation_digitized_{i}.jpg")
             
-            if (equation['digitized_image'] is None):
-                continue
+            if (equation['digitized_image'] is not None):
+                skimage.io.imsave(output_digitized_fp, equation['digitized_image'])
+    
             
-            skimage.io.imsave(output_digitized_fp, equation['digitized_image'])
             skimage.io.imsave(output_orig_fp, equation['orig_image'])
-
-        
-            
-            
-            
-            
-
-
-
-
-
-        
