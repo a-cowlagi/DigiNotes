@@ -20,25 +20,31 @@ class EquationDetection:
 
         self.src_img = image
         self.equations = None
-        self.api_key = api_key
-        self.api_id = api_id
+
+        if (api_key is None or api_id is None):
+            self.api_key = os.environ.get("MATHPIX_API_KEY")
+            self.api_id = os.environ.get("MATHPIX_API_ID")
+        else:
+            self.api_key = api_key
+            self.api_id = api_id
 
     
     def process(self, image = None):
         if image is not None:
             self.src_img = image
 
-
-        self.src_img, boxes = self.boxes(self.src_img)
+        boxes = self.boxes(self.src_img)
         self.equations = self.compile_equations(self.src_img, boxes)
+        self.boxes = boxes
 
         return self.equations
 
-    
+   
     def boxes(self, orig: np.ndarray):
         # Convert orig to a PIL image
-        orig = Image.fromarray(orig)
-        img = ImageOps.grayscale(orig)
+        orig_im = Image.fromarray(orig)
+
+        img = ImageOps.grayscale(orig_im)
 
         im = np.array(img)
 
@@ -61,6 +67,12 @@ class EquationDetection:
             if len(py) < min_size:
                 im[lbl == i] = 0
                 continue
+            
+            # get pixels in orig image corresponding to py, px
+            orig_region = orig[py, px]
+            
+            if (not(orig_region.mean(axis =0)[0] > 150 and orig_region.mean(axis =0)[1] < 100 and orig_region.mean(axis =0)[2] < 100)):
+                continue
 
             xmin, xmax, ymin, ymax = px.min(), px.max(), py.min(), py.max()
             # Four corners and centroid.
@@ -74,12 +86,12 @@ class EquationDetection:
             for j, b2 in enumerate(box):
                 if i != j and b1[0][0][0] >= b2[0][0][0] and b1[0][0][1] >= b2[0][0][1] and b1[0][2][0] <= b2[0][2][0] and b1[0][2][1] <= b2[0][2][1]:
                     box_to_remove.add(i)
+        
         box = [b for i, b in enumerate(box) if i not in box_to_remove]
 
-        # Convert PIL img to numpy array.
-        img = np.array(img)
-
-        return img, box
+        
+  
+        return box
 
 
     def compile_equations(self, image, boxes):
@@ -88,26 +100,30 @@ class EquationDetection:
 
         # Iterate over the boxes and crop the image.
         for i, box in enumerate(boxes):
+    
             # Extract the coordinates of the box.
             xmin, ymin, xmax, ymax = box[0][0][0], box[0][0][1], box[0][2][0], box[0][2][1]            
             eqn_img = image[ymin:ymax, xmin:xmax]
             
             ocr = self._eqn_img_to_latex(eqn_img)
             try: 
-                digitized_equation = self.tex_to_image(ocr.latex)
+                cleaned_tex = ocr.latex.replace(' _ ', '_').replace(' ^ ', '^')
+                digitized_equation = self.tex_to_image(cleaned_tex)
             except ValueError as e:
+                print(e)
                 digitized_equation = None       
             finally:
                 equation_dict = {
                     "orig_image": eqn_img,
                     "digitized_image": digitized_equation,
                     "latex": ocr.latex,
+                    "latex_confidence": ocr.latex_confidence,
                     "centroid": box[1],
                     "bbox": box[0]
                 }
 
                 equations.append(equation_dict)
-                
+            
 
         # Sort the equations from left to right, top to bottom.
         equations.sort(key=lambda x: (x["centroid"][1], x["centroid"][0]))
@@ -120,6 +136,7 @@ class EquationDetection:
         
         mathpix = MathPix(app_key=self.api_key, app_id=self.api_id)
         ocr = mathpix.process_image(image_path = "equation.jpg")
+        
         # Delete the saved temporary image.
         os.remove("equation.jpg")
         return ocr
@@ -171,12 +188,10 @@ class EquationDetection:
             os.makedirs(output_dir)
         
         for i, equation in enumerate(self.equations):
-            print(equation["latex"])
             output_orig_fp = os.path.join(output_dir, f"equation_orig_{i}.jpg")
             output_digitized_fp = os.path.join(output_dir, f"equation_digitized_{i}.jpg")
             
             if (equation['digitized_image'] is not None):
                 skimage.io.imsave(output_digitized_fp, equation['digitized_image'])
-    
             
             skimage.io.imsave(output_orig_fp, equation['orig_image'])

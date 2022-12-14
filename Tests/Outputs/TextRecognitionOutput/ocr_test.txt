@@ -1,0 +1,5 @@
+(146, 225): This test is used to combine 
+(332, 475): a line segmentation algorithm 
+(522, 630): with a transformer-based optical... 
+(741, 844): charader recognition architecture 
+(895, 1023): to perform efficient text recognition. 

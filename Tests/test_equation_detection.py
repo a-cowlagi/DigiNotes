@@ -5,8 +5,8 @@ from PIL import Image
 sys.path.append("./")
 from EquationDetection.equation_detection import EquationDetection
 
-output_dir = "Tests/Outputs/EquationDetection/"
-src_image_path = "Tests/TestImages/test_equations.jpg"
+output_dir = "Tests/Outputs/EquationDetection/Main/"
+src_image_path = "Sample Notes.jpg"
 
 # get my api key and id from environment variables
 api_key = os.environ.get("MATHPIX_API_KEY")
