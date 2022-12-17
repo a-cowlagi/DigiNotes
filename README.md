@@ -1,1 +1,1 @@
-# DigiNotes: A comprehensive note digitization tool
+# DigiNotes: A Comprehensive Lecture Note Digitization Tool
