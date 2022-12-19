@@ -1,8 +1,3 @@
-"""
-
- CV_transform_utils.py  (author: Anson Wong / git: ankonzoid)
-
-"""
 from multiprocessing import Pool
 from skimage.transform import resize
 
