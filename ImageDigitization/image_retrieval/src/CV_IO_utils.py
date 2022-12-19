@@ -1,8 +1,3 @@
-"""
-
- CV_IO_utils.py  (author: Anson Wong / git: ankonzoid)
-
-"""
 import os
 import skimage.io
 from multiprocessing import Pool
@@ -20,14 +15,17 @@ def read_imgs_dir(dirPath, extensions, parallel=True):
     print("HUH2")
     if parallel:
         print("HUHHU")
-        pool = Pool()
+#         pool = Pool()
         print("break here 1")
         print(args)
-        imgs = pool.map(read_img, args)
+        imgs = []
+        for i in args:
+         imgs.append(read_img(i))
+#         imgs = pool.map(read_img, args)
         print("break here 2")
-        pool.close()
+#         pool.close()
         print("break here 3")
-        pool.join()
+#         pool.join()
         print("HUH3")
     else:
         print("UHHH")
