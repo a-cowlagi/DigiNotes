@@ -1,8 +1,3 @@
-"""
-
- utils.py (author: Anson Wong / git: ankonzoid)
-
-"""
 import random
 import numpy as np
 
