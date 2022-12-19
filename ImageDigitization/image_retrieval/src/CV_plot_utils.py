@@ -1,8 +1,3 @@
-"""
-
- CV_plot_utils.py  (author: Anson Wong / git: ankonzoid)
-
-"""
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import offsetbox
