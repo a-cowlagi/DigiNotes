@@ -1,12 +1,8 @@
-"""
-
- autoencoder.py  (author: Anson Wong / git: ankonzoid)
-
-"""
 import numpy as np
 import tensorflow as tf
 from src.utils import split
 
+# Create an autoencoder class that has both encoder and decoder architectures
 class AutoEncoder():
 
     def __init__(self, modelName, info):
@@ -16,9 +12,9 @@ class AutoEncoder():
         self.encoder = None
         self.decoder = None
 
-    # Train
-    def fit(self, X, n_epochs=50, batch_size=256):
-        indices_fracs = split(fracs=[0.9, 0.1], N=len(X), seed=0)
+    # Train (batch size is dependent on GPU - feel free to change this value depending on specifications)
+    def fit(self, X, n_epochs=30, batch_size=256):
+        indices_fracs = split(fracs=[0.85, 0.15], N=len(X), seed=0)
         X_train, X_valid = X[indices_fracs[0]], X[indices_fracs[1]]
         self.autoencoder.fit(X_train, X_train,
                              epochs = n_epochs,
@@ -26,7 +22,7 @@ class AutoEncoder():
                              shuffle = True,
                              validation_data = (X_valid, X_valid))
 
-    # Inference
+    # Move the value of X into the latent space
     def predict(self, X):
         return self.encoder.predict(X)
 
@@ -36,20 +32,12 @@ class AutoEncoder():
         shape_img = self.info["shape_img"]
         shape_img_flattened = (np.prod(list(shape_img)),)
 
-        # Set encoder and decoder graphs
-        if self.modelName == "simpleAE":
-            encode_dim = 128
-
-            input = tf.keras.Input(shape=shape_img_flattened)
-            encoded = tf.keras.layers.Dense(encode_dim, activation='relu')(input)
-
-            decoded = tf.keras.layers.Dense(shape_img_flattened[0], activation='sigmoid')(encoded)
-
-        elif self.modelName == "convAE":
+        if self.modelName == "convAE":
             n_hidden_1, n_hidden_2, n_hidden_3 = 16, 8, 8
             convkernel = (3, 3)  # convolution kernel
-            poolkernel = (2, 2)  # pooling kernel
+            poolkernel = (3, 3)  # pooling kernel
 
+            # This is the encoder (3 pairs of convolution - pooling layers)
             input = tf.keras.layers.Input(shape=shape_img)
             x = tf.keras.layers.Conv2D(n_hidden_1, convkernel, activation='relu', padding='same')(input)
             x = tf.keras.layers.MaxPooling2D(poolkernel, padding='same')(x)
@@ -58,6 +46,7 @@ class AutoEncoder():
             x = tf.keras.layers.Conv2D(n_hidden_3, convkernel, activation='relu', padding='same')(x)
             encoded = tf.keras.layers.MaxPooling2D(poolkernel, padding='same')(x)
 
+            # This is the decoder which is the opposite of the encoder architecture
             x = tf.keras.layers.Conv2D(n_hidden_3, convkernel, activation='relu', padding='same')(encoded)
             x = tf.keras.layers.UpSampling2D(poolkernel)(x)
             x = tf.keras.layers.Conv2D(n_hidden_2, convkernel, activation='relu', padding='same')(x)
@@ -98,11 +87,8 @@ class AutoEncoder():
         decoder_output_shape = decoder.layers[-1].output_shape[1:]
 
         # Generate summaries
-        print("\nautoencoder.summary():")
         print(autoencoder.summary())
-        print("\nencoder.summary():")
         print(encoder.summary())
-        print("\ndecoder.summary():")
         print(decoder.summary())
 
         # Assign models
